@@ -44,9 +44,7 @@ wp = WeatherPublisher(name="Weather_Station_esp32_1", prefix="home/greenhouse/we
 FileLogger.log("Publishing weather measures every %d seconds" % period)
 
 while True:
-    wp.busy_publisher(period=period, loops=2)
+    wp.busy_publisher(period=period, loops=6)
     ntp.request_time()
-    log.log("Time synced from NTP, local: %d, offset: %d" % (ntp.get_local_time(), ntp.get_offset()))
-
 
 log.close()

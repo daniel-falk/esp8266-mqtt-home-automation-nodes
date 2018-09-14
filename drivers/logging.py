@@ -1,4 +1,3 @@
-from .simple_ntp import SimpleNTP
 
 class FileLogger:
     __instance = None
@@ -26,6 +25,9 @@ class FileLogger:
         self.f.write("----------------")
         self.f.flush()
 
+        # Since SimpleNTP uses this logging class we must import
+        # SimpleNTP only in the singleton constructor to avoid infinite import loops
+        from .simple_ntp import SimpleNTP
         self.ntp = SimpleNTP()
 
         FileLogger.__instance = self

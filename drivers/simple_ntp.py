@@ -1,3 +1,5 @@
+from .logging import FileLogger
+
 from time import time
 
 try:
@@ -18,6 +20,7 @@ class SimpleNTP:
     def __init__(self, server="192.168.0.80", port=123):
         self.port = port
         self.server = server
+        self.last_error = None
 
 
     def get_local_time(self):
@@ -37,13 +40,20 @@ class SimpleNTP:
             resp, (s, p) = client.recvfrom(1024)
             client.close()
             if len(resp) != 48:
-                print("Unknown response from NTP-server")
+                if self.last_error != 1:
+                    FileLogger.log("Unknown response from NTP-server")
+                    self.last_error = 1
                 return 0
             self._unpack(resp)
             self._set_offset()
+            if not self.last_error is None:
+                self.last_error = None
+                FileLogger.log("Syncronized time from NTP successfully")
             return self.ntp_time
         except OSError:
-            print("Failed to contact NTP-server")
+            if self.last_error != 2:
+                FileLogger.log("Failed to contact NTP-server")
+                self.last_error = 2
             return self.get_local_time()
 
 
