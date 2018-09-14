@@ -1,4 +1,4 @@
-from logging import FileLogger
+from drivers.logging import FileLogger
 
 log = FileLogger.get_instance()
 log.stdout = True
@@ -8,10 +8,10 @@ log.log("Boot start")
 import sys
 import machine
 from time import sleep
-import wifi
+import drivers.wifi as wifi
 
 from weather_publisher import WeatherPublisher
-from simple_ntp import SimpleNTP
+from drivers.simple_ntp import SimpleNTP
 
 
 # Disable wifi access point

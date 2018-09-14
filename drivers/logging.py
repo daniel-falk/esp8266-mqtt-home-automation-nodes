@@ -1,4 +1,4 @@
-from simple_ntp import SimpleNTP
+from .simple_ntp import SimpleNTP
 
 class FileLogger:
     __instance = None
@@ -19,6 +19,8 @@ class FileLogger:
     def __init__(self):
         if FileLogger.__instance:
             raise Exception("Singleton should be initiated with get_instance()")
+
+        self.stdout = False
 
         self.f = open("log.txt", "a")
         self.f.write("----------------")

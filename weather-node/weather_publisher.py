@@ -1,6 +1,6 @@
-from mqtt import MQTTPublisher
-from read_temp import bme
-from logging import FileLogger
+from drivers.mqtt import MQTTPublisher
+from drivers.read_temp import sensor
+from drivers.logging import FileLogger
 
 from time import sleep
 from math import isinf
@@ -16,7 +16,7 @@ class WeatherPublisher:
         while cnt > 0:
             tags = ["temperature", "air-pressure", "humidity"]
             units = ["C", "hPa", "%"]
-            wdata = bme.values
+            wdata = sensor.values
             for tag, value, unit in zip(tags, wdata, units):
                 data = {
                         "value" : value[:-len(unit)],
