@@ -19,7 +19,7 @@ class WeatherPublisher:
             wdata = sensor.values
             for tag, value, unit in zip(tags, wdata, units):
                 data = {
-                        "value" : value[:-len(unit)],
+                        "value" : float(value[:-len(unit)]),
                         "unit" : unit
                         }
                 self.pub.publish(tag, data, add_ts=True, retain=True)
