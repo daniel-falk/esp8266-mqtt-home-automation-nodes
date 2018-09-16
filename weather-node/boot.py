@@ -1,9 +1,18 @@
+
+# Initiate the logging and printing to UART
+
 from drivers.logging import FileLogger
+import uos
+import machine
+
+uos.dupterm(machine.UART(0, 115200), 1)
 
 log = FileLogger.get_instance()
 log.stdout = True
 
 log.log("Boot start")
+
+# Start the MQTT node client and stuff
 
 import sys
 import machine
