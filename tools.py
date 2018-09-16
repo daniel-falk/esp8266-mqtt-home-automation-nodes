@@ -41,32 +41,43 @@ def has_file(name, folder_type=False):
     return (name, folder_type) in files
 
 
-def make_dir(name, error_on_exist=False):
-    if error_on_exist is False and has_file(name, folder_type=True):
-        return
-    p = subprocess.Popen(mpfshell + ["-n", "-c", "md", name], stdout=subprocess.PIPE)
-    out, err = p.communicate()
-    if "Invalid directory name" in out.decode():
-        print("Failed to create directory, name already exist")
-        sys.exit(2)
-
-
-def deploy_dir(dir, type="*.py", cut_dir_name=False):
-    files = glob(os.path.join(dir, type))
-    for f in files:
-        ex_dir = "."
-        if cut_dir_name:
-            f = f[len(dir) + 1 : ]
-            ex_dir = dir
-        print("cpy %s..." % f)
-        p = subprocess.Popen(mpfshell + ["-n", "-c", "put", f], cwd=ex_dir, stdout=subprocess.PIPE)
+def make_dir(path, error_on_exist=False):
+    name = path.split("/")
+    for i in range(0, len(name)):
+        if i == 0:
+            cmd = "md %s" % name[i]
+        else:
+            cwd = "/".join(name[:i])
+            n = name[i]
+            cmd = "cd %s; md %s" % (cwd, n)
+        p = subprocess.Popen(mpfshell + ["-n", "-c", cmd], stdout=subprocess.PIPE)
         out, err = p.communicate()
-        if not "Connected" in out.decode():
-            print("Copy of files failed")
-            print(out)
-            sys.exit(3)
-        if "No such file or directory" in out.decode():
-            raise RuntimeError("File not found: %s" % f)
+        if "Invalid directory name" in out.decode() and error_on_exist:
+            print("Failed to create directory, name already exist")
+
+
+def deploy_dir(dir, type="*.py", cut_dir_name=False, recursive=True):
+    if recursive:
+        dirs = sorted([p[0] for p in os.walk(dir, followlinks=True)])
+        for d in dirs:
+            make_dir(d)
+            deploy_dir(d, type=type, recursive=False)
+    else:
+        files = glob(os.path.join(dir, type))
+        for f in files:
+            ex_dir = "."
+            if cut_dir_name:
+                f = f[len(dir) + 1 : ]
+                ex_dir = dir
+            print("cpy %s..." % f)
+            p = subprocess.Popen(mpfshell + ["-n", "-c", "put", f], cwd=ex_dir, stdout=subprocess.PIPE)
+            out, err = p.communicate()
+            if not "Connected" in out.decode():
+                print("Copy of files failed")
+                print(out)
+                sys.exit(3)
+            if "No such file or directory" in out.decode():
+                raise RuntimeError("File not found: %s" % f)
 
 
 def deploy(project, dirs=[]):
@@ -74,9 +85,9 @@ def deploy(project, dirs=[]):
         print("%s is not a project directory" % project)
         sys.exit(2)
     for d in dirs:
-        make_dir(d)
         deploy_dir(d)
-    deploy_dir(project, cut_dir_name=True)
+    deploy_dir(project, cut_dir_name=True, recursive=False)
+    deploy_dir(project, type="*.json", cut_dir_name=True, recursive=False)
 
 
 def help():
@@ -90,16 +101,22 @@ if __name__ == "__main__":
     except IndexError:
         help()
 
-    if cmd == "shell":
+
+    if cmd == "host":
+        pty.spawn([host_bin])
+
+    elif cmd == "shell":
         pty.spawn(mpfshell)
 
     elif cmd == "repl":
         pty.spawn(mpfshell + ["-c", "repl"])
 
-    elif cmd == "deploy":
+    elif cmd == "deploy" or cmd == "go":
         project = sys.argv[2]
         dirs = sys.argv[3:]
         deploy(project, dirs)
+        if cmd == "go":
+            pty.spawn(mpfshell + ["-c", "repl"])
 
     elif cmd == "list-files":
         for n, t in get_target_files():
