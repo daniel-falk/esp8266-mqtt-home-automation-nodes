@@ -55,12 +55,17 @@ class MQTTPublisher:
         self._pub_info("connected", "%d" % self.ntp.request_time())
 
 
-    def publish(self, name, data, add_ts=False, retain=False):
+    def publish(self, data, postfix=None, add_ts=False, retain=False):
         now = self.ntp.get_local_time()
         if add_ts:
             data["time"] = now
-        self.client.publish(b"/".join([self.prefix, name.encode("utf-8")]), dumps(data).encode("utf-8"), retain)
 
+        if postfix:
+            topic = b"/".join([self.prefix, postfix.encode("utf-8")])
+        else:
+            topic = self.prefix
+
+        self.client.publish(topic, dumps(data).encode("utf-8"), retain)
         self._pub_info("last_update", "%d" % now)
 
 

@@ -17,12 +17,8 @@ class WeatherPublisher:
             tags = ["temperature", "air-pressure", "humidity"]
             units = ["C", "hPa", "%"]
             wdata = sensor.values
-            for tag, value, unit in zip(tags, wdata, units):
-                data = {
-                        "value" : float(value[:-len(unit)]),
-                        "unit" : unit
-                        }
-                self.pub.publish(tag, data, add_ts=True, retain=True)
+            data = {tag: float(value[:-len(unit)]) for tag, value, unit in zip(tags, wdata, units)}
+            self.pub.publish(data, postfix="weather", add_ts=True, retain=True)
             sleep(period)
             if not isinf(loops):
                 cnt -= 1
