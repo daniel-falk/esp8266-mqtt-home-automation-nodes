@@ -16,12 +16,11 @@ log.log("Boot start")
 
 import sys
 import machine
-from time import sleep
 import ujson
 
 import drivers.wifi as wifi
-from weather_publisher import WeatherPublisher
 from drivers.simple_ntp import SimpleNTP
+from publisher import PublisherCoordinator
 
 # Get the config from json config file
 config = ujson.loads(open("config.json").read())
@@ -38,12 +37,11 @@ ntp.request_time()
 log.log("Time synced from NTP, local: %d, offset: %d" % (ntp.get_local_time(), ntp.get_offset()))
 
 # Start publishing MQTT-messages
-period = config["publisher"]["period"]
-wp = WeatherPublisher(name=config["publisher"]["name"], prefix=config["publisher"]["prefix"])
-FileLogger.log("Publishing weather measures every %d seconds" % period)
+# Update the time from NTP every 6th iteration
+# The run-call blocks untill an exception is thrown (e.g. ctrl+C)
+coordinator = PublisherCoordinator(config)
+coordinator.add_callback(ntp.request_time, divider=6)
+coordinator.run()
 
-while True:
-    wp.busy_publisher(period=period, loops=6)
-    ntp.request_time()
-
+# Clean up..
 log.close()

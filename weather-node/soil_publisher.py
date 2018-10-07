@@ -1,11 +1,13 @@
+import machine
+
 from drivers.mqtt import MQTTPublisher
-from drivers.read_temp import sensor
 from drivers.logging import FileLogger
 
-class WeatherPublisher:
+class SoilPublisher:
 
     def __init__(self, postfix, mqtt_publisher=None, **kwargs):
         self.postfix = postfix
+        self.adc = machine.ADC(0)
 
         if mqtt_publisher is None:
             self.pub = MQTTPublisher(**kwargs)
@@ -14,8 +16,5 @@ class WeatherPublisher:
 
 
     def publish(self):
-        tags = ["temperature", "air-pressure", "humidity"]
-        units = ["C", "hPa", "%"]
-        wdata = sensor.values
-        data = {tag: float(value[:-len(unit)]) for tag, value, unit in zip(tags, wdata, units)}
+        data = {"moisture1": self.adc.read() / 1024}
         self.pub.publish(data, postfix=self.postfix, add_ts=True, retain=True)
