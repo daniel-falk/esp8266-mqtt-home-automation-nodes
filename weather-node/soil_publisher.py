@@ -1,7 +1,6 @@
 import machine
 
 from drivers.mqtt import MQTTPublisher
-from drivers.logging import FileLogger
 
 class SoilPublisher:
 

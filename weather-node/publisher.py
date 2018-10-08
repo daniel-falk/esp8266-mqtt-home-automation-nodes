@@ -2,8 +2,6 @@ from time import sleep
 
 from drivers.logging import FileLogger
 from drivers.mqtt import MQTTPublisher
-from weather_publisher import WeatherPublisher
-from soil_publisher import SoilPublisher
 
 class Callback():
 
@@ -38,6 +36,7 @@ class PublisherCoordinator():
         # Add weather sensor if specified in config file
         try:
             divider = config["publisher"]["data"]["weather"]["divider"]
+            from weather_publisher import WeatherPublisher
             wp = WeatherPublisher("weather", mqtt_publisher=mqtt)
             self.add_callback(wp.publish, divider)
             period = self.config["publisher"]["period"] * divider
@@ -48,12 +47,26 @@ class PublisherCoordinator():
         # Add weather sensor if specified in config file
         try:
             divider = config["publisher"]["data"]["soil"]["divider"]
+            from soil_publisher import SoilPublisher
             sp = SoilPublisher("soil", mqtt_publisher=mqtt)
             self.add_callback(sp.publish, divider)
             period = self.config["publisher"]["period"] * divider
             FileLogger.log("Publishing soil moisture measures every %d seconds" % period)
         except KeyError:
             pass
+
+        # Add temperature sensor if specified in config file
+        try:
+            divider = config["publisher"]["data"]["temperature"]["divider"]
+            pin = config["publisher"]["data"]["temperature"]["GPIO"]
+            from ds18x20_publisher import DS18X20Publisher
+            tp = DS18X20Publisher(postfix="temperature", mqtt_publisher=mqtt, pin=pin)
+            self.add_callback(tp.publish, divider)
+            period = self.config["publisher"]["period"] * divider
+            FileLogger.log("Publishing temperature measures every %d seconds" % period)
+        except KeyError:
+            pass
+
 
 
     def run(self):

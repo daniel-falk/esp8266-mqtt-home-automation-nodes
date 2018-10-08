@@ -1,6 +1,5 @@
 from drivers.mqtt import MQTTPublisher
 from drivers.read_temp import sensor
-from drivers.logging import FileLogger
 
 class WeatherPublisher:
 
