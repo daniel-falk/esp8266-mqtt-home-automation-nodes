@@ -3,25 +3,20 @@ from ds18x20 import DS18X20
 from onewire import OneWire
 from binascii import hexlify
 
-from drivers.mqtt import MQTTPublisher
+from publisher import BasePublisher
 from drivers.logging import FileLogger
 
-class DS18X20Publisher:
 
-    def __init__(self, postfix, pin, mqtt_publisher=None, **kwargs):
-        self.postfix = postfix
+class DS18X20Publisher(BasePublisher):
+
+    def __init__(self, postfix, pin, **kwargs):
+        super().__init__(postfix, **kwargs)
         self.pin = Pin(pin)
         self.onewire = OneWire(self.pin)
         self.sensor = DS18X20(self.onewire)
         self.roms = self.sensor.scan()
-        self.initialized = False # Sensor conversion takes 700mS, always lag one iteration behind.
+        self.initialized = False  # Sensor conversion takes 700mS, always lag one iteration behind.
         FileLogger.log("Found %d ds18x20 sensors" % len(self.roms))
-
-        if mqtt_publisher is None:
-            self.pub = MQTTPublisher(**kwargs)
-        else:
-            self.pub = mqtt_publisher
-
 
     def publish(self):
         # Lag one conversion behind to give atleast 700mS notice...

@@ -1,10 +1,28 @@
 from time import sleep
+from abc import ABCMeta, abstractmethod
 
 from drivers.logging import FileLogger
 from drivers.mqtt import MQTTPublisher
 
-class Callback():
 
+class BasePublisher():
+    """Abstract class to inherit when building sensor specific publishers"""
+    __metaclass__ = ABCMeta
+
+    def __init__(self, postfix, mqtt_publisher=None, **kwargs):
+        self.postfix = postfix
+        if mqtt_publisher is None:
+            self.pub = MQTTPublisher(**kwargs)
+        else:
+            self.pub = mqtt_publisher
+
+    @abstractmethod
+    def publish(self):
+        pass
+
+
+class Callback():
+    """Simple callback structure for registered callbacks"""
     def __init__(self, divider, callback, **kwargs):
         self.divider = divider
         self.callback = callback
@@ -15,7 +33,7 @@ class Callback():
 
 
 class PublisherCoordinator():
-
+    """Coordinator for sensor specific publishers"""
     def __init__(self, config):
         self.config = config
         self.callbacks = []
@@ -24,10 +42,8 @@ class PublisherCoordinator():
 
         self.add_mqtt_callbacks()
 
-
     def add_callback(self, callback, divider=1, **kwargs):
         self.callbacks.append(Callback(divider, callback, **kwargs))
-
 
     def add_mqtt_callbacks(self):
         config = self.config
@@ -66,8 +82,6 @@ class PublisherCoordinator():
             FileLogger.log("Publishing temperature measures every %d seconds" % period)
         except KeyError:
             pass
-
-
 
     def run(self):
         while True:
