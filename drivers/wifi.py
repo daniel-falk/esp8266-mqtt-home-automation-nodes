@@ -1,5 +1,6 @@
 import network
 import machine
+import ubinascii
 from time import sleep
 
 from .logging import FileLogger
@@ -50,3 +51,8 @@ def get_ip():
     if not con.isconnected():
         return None
     return con.ifconfig()[0]
+
+
+def get_mac():
+    mac = network.WLAN().config('mac')
+    return ubinascii.hexlify(mac, ':').decode()

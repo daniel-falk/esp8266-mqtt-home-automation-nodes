@@ -1,4 +1,4 @@
-from .wifi import get_ip
+from .wifi import get_ip, get_mac
 from .simple_ntp import SimpleNTP
 from .logging import FileLogger
 
@@ -41,8 +41,8 @@ class MQTTClient(RobustMQTTClient):
 
 class MQTTPublisher:
 
-    def __init__(self, name="esp32", prefix="/home/esp32", server = "192.168.0.80"):
-        self.name = name
+    def __init__(self, name, prefix, server):
+        self.name = name or get_mac()
         self.prefix = prefix.encode("utf-8")
         self.server = server
 

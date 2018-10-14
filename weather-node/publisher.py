@@ -47,7 +47,12 @@ class PublisherCoordinator():
 
     def add_mqtt_callbacks(self):
         config = self.config
-        mqtt = MQTTPublisher(name=config["publisher"]["name"], prefix=config["publisher"]["prefix"])
+
+        opts = {}
+        opts["name"] = config["publisher"].get("name", None)
+        opts["prefix"] = config["publisher"]["prefix"]
+        opts["server"] = config["publisher"]["server"]
+        mqtt = MQTTPublisher(**opts)
 
         # Add weather sensor if specified in config file
         try:
