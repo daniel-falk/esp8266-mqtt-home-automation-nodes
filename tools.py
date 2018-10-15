@@ -56,8 +56,8 @@ class Tool():
         self.host_root = os.path.join(self.fw_root, "ports", "unix")
         self.host_bin = os.path.join(self.host_root, "micropython")
 
-    def run_host(self):
-        pty.spawn([self.host_bin])
+    def run_host(self, args=None):
+        pty.spawn([self.host_bin] + (args or []))
 
     def run_target(self):
         pty.spawn(self.mpfshell)
@@ -144,7 +144,7 @@ class Tool():
 
 
 if __name__ == "__main__":
-    commands = ["host", "shell", "repl", "deploy", "go", "list-files", "reset", "reflash"]
+    commands = ["test", "host", "shell", "repl", "deploy", "go", "list-files", "reset", "reflash"]
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=commands)
     parser.add_argument("--port", default="ttyUSB0", help="Which port to use (ttyUSB0)")
@@ -152,8 +152,11 @@ if __name__ == "__main__":
 
     tool = Tool(args.port)
 
-    if args.command == "host":
-        tool.run_host()
+    if args.command == "test":
+        tool.run_host(args=["test.py"])
+
+    elif args.command == "host":
+        tool.run_host(args=other)
 
     elif args.command == "shell":
         tool.run_target()
