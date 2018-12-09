@@ -3,11 +3,8 @@ import unittest
 
 class TestWeatherNode(unittest.TestCase):
 
-    def test_logger(self):
-        from drivers.logging import FileLogger
-        log = FileLogger.get_instance()
-        log.stdout = True
-        log.log("Test logger")
+    def test_dummy(self):
+        pass
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 from publisher import BasePublisher
 from drivers.read_temp import sensor
-from drivers.logging import FileLogger
 
 
 class WeatherPublisher(BasePublisher):
@@ -9,7 +8,7 @@ class WeatherPublisher(BasePublisher):
         try:
             wdata = sensor.values
         except OSError:
-            FileLogger.log("Failed to read weather sensor info... OSERROR")
+            print("Failed to read weather sensor info... OSERROR")
             return
         tags = ["temperature", "air-pressure", "humidity"]
         units = ["C", "hPa", "%"]

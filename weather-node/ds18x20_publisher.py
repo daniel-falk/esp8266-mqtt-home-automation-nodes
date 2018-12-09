@@ -4,7 +4,6 @@ from onewire import OneWire
 from binascii import hexlify
 
 from publisher import BasePublisher
-from drivers.logging import FileLogger
 
 
 class DS18X20Publisher(BasePublisher):
@@ -16,7 +15,7 @@ class DS18X20Publisher(BasePublisher):
         self.sensor = DS18X20(self.onewire)
         self.roms = self.sensor.scan()
         self.initialized = False  # Sensor conversion takes 700mS, always lag one iteration behind.
-        FileLogger.log("Found %d ds18x20 sensors" % len(self.roms))
+        print("Found %d ds18x20 sensor(s)" % len(self.roms))
 
     def publish(self):
         # Lag one conversion behind to give atleast 700mS notice...

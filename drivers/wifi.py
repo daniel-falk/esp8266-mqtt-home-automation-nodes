@@ -3,18 +3,15 @@ import machine
 import ubinascii
 from time import sleep
 
-from .logging import FileLogger
-
 
 def wait_for_connect(allow_restart=False):
     failed_count = 0
     while True:
         ip = get_ip()
         if ip is not None:
-            FileLogger.log("Connected with IP: %s" % ip)
             break
         failed_count += 1
-        FileLogger.log("Failed to connect to wifi %d times..." % failed_count)
+        print("Failed to connect to wifi %d times..." % failed_count)
         sleep(1)
         if failed_count > 60 and allow_restart:
             machine.reset()
