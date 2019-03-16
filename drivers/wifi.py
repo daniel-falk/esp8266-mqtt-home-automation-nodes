@@ -4,7 +4,7 @@ import ubinascii
 from time import sleep
 
 
-def wait_for_connect(allow_restart=False):
+def wait_for_connect(allow_restart):
     failed_count = 0
     while True:
         ip = get_ip()
@@ -27,13 +27,13 @@ def access_point(enable=False, disable=False):
     return ap.active()
 
 
-def connect(ssid, password, wait=False, **kwargs):
+def connect(ssid, password, wait, allow_restart):
     con = network.WLAN(network.STA_IF)
     if not con.active():
         con.active(True)
         con.connect(ssid, password)
     if wait:
-        wait_for_connect(**kwargs)
+        wait_for_connect(allow_restart)
 
 
 def disconnect():

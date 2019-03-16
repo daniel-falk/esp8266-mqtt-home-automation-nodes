@@ -1,10 +1,12 @@
+import machine
+import gc
+from json import dumps
+
 from .wifi import get_ip, get_mac
 from .simple_ntp import SimpleNTP
 
-
 from umqtt.robust import MQTTClient as RobustMQTTClient
-from json import dumps
-import machine
+from umqtt.simple import MQTTException
 
 
 class SuperRobustMQTTClient(RobustMQTTClient):
@@ -26,7 +28,8 @@ class SuperRobustMQTTClient(RobustMQTTClient):
         while 1:
             try:
                 return func(*args, **kwargs)
-            except OSError:
+            except (OSError, MQTTException) as e:
+                print("Connect error: %s" % str(e))
                 i += 1
                 self.delay(i)
                 if i > self.MAX_RETRIES:
@@ -39,23 +42,22 @@ class MQTTClient(SuperRobustMQTTClient):
     TOPIC_COMMAND = "commands".encode("utf-8")
     TOPIC_INFO = "info".encode("utf-8")
 
-    def __init__(self, name, prefix, server):
+    def __init__(self, name, prefix, server, port):
         self.name = name or get_mac()
         self.prefix = prefix.encode("utf-8")
         self.server = server
+        self.port = port
 
-        self.ntp = SimpleNTP()
-
-        super().__init__(self.name, self.server)
+        super().__init__(self.name, self.server, self.port)
         self.connect()
 
         self._pub_info("ip", get_ip())
-        self._pub_info("connected", "%d" % self.ntp.request_time())
+        self._pub_info("connected", "%d" % SimpleNTP.get_local_time())
 
         self.topic_types = [None, self.TOPIC_COMMAND, self.TOPIC_INFO]
 
     def publish(self, data, postfix=None, add_ts=False, retain=False):
-        now = self.ntp.get_local_time()
+        now = SimpleNTP.get_local_time()
         if add_ts:
             data["time"] = now
 
@@ -67,6 +69,9 @@ class MQTTClient(SuperRobustMQTTClient):
         payload = data if isinstance(data, str) else dumps(data)
         super().publish(topic, payload.encode("utf-8"), retain)
         self._pub_info("last_update", "%d" % now)
+        self._pub_info("free_mem", "%d" % gc.mem_free())
+        self._pub_info("tot_mem", "%d" % (gc.mem_free() + gc.mem_alloc()))
+
 
     def subscribe(self, name, type=None, qos=1):
         if type not in self.topic_types:

@@ -20,10 +20,12 @@ class SimpleNTP:
         self.server = server
         self.last_error = None
 
-    def get_local_time(self):
+    @staticmethod
+    def get_local_time():
         return SimpleNTP.OFFSET + time()
 
-    def get_offset(self):
+    @staticmethod
+    def get_offset():
         return SimpleNTP.OFFSET
 
     def request_time(self):
